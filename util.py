@@ -165,21 +165,21 @@ def role_session_name():
     else:
         raise Exception('JOB_NAME or EMAIL environment variable must be set for session name of assumed role')
 
-def assume_role_credentials(region, account_prefix, prod=False):
-    account = account_prefix + ('prod' if prod else 'dev')
-    print("Assuming role {}".format(account))
+def assume_role_credentials(region, platform_config, prod=False):
+    account_id = platform_config["aws_config"]["%s.account_id" % ("prod" if prod else "dev")]
+    print("Assuming role in account %s" % account_id)
     try:
         session = boto3.session.Session(region_name=region)
         credentials = session.client('sts').assume_role(
-            RoleArn=('arn:aws:iam::%s:role/admin' % get_platform_config()['accountids'][account]),
+            RoleArn=('arn:aws:iam::%s:role/admin' % account_id),
             RoleSessionName=role_session_name(),
         )['Credentials']
     except botocore.exceptions.NoCredentialsError as e:
         raise UserError('could not connect to AWS mergermarket account: ' + str(e))
     return credentials['AccessKeyId'], credentials['SecretAccessKey'], credentials['SessionToken']
 
-def assume_role(region, account_prefix, prod=False):
-    access_key_id, secret_access_key, session_token = assume_role_credentials(region, account_prefix, prod)
+def assume_role(region, platform_config, prod=False):
+    access_key_id, secret_access_key, session_token = assume_role_credentials(region, platform_config, prod)
     return boto3.session.Session(
         aws_access_key_id=access_key_id,
         aws_secret_access_key=secret_access_key,

@@ -115,7 +115,7 @@ class Deployment:
         Gets an AWS session.
         """
         if self.aws is None:
-            self.aws = util.assume_role(self.metadata['REGION'], self.metadata['ACCOUNT_PREFIX'], self.prod())
+            self.aws = util.assume_role(self.metadata['REGION'], self.platform_config, self.prod())
         return self.aws
 
     def _get_aws_credentials(self, session):

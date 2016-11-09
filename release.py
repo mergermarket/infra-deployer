@@ -52,7 +52,7 @@ class Release:
         Gets an AWS session.
         """
         if self.aws is None:
-            self.aws = util.assume_role(self.metadata['REGION'], self.metadata['ACCOUNT_PREFIX'])
+            self.aws = util.assume_role(self.metadata['REGION'], self.platform_config)
         return self.aws
 
     def _set_aws(self, aws):
