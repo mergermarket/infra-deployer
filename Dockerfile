@@ -9,8 +9,8 @@ RUN apk update && \
     apk add bash ca-certificates curl docker gawk git git openssl py-pip unzip wget
 
 RUN cd /tmp && \
-    curl -sSLO https://github.com/gruntwork-io/terragrunt/releases/download/${TERRAGRUNT_VERSION}/terragrunt_linux_386 && \
-    mv terragrunt_linux_386 /usr/local/bin/terragrunt && \
+    curl -sSLO https://github.com/gruntwork-io/terragrunt/releases/download/${TERRAGRUNT_VERSION}/terragrunt_linux_amd64 && \
+    mv terragrunt_linux_amd64 /usr/local/bin/terragrunt && \
     curl -sSLO https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
     unzip terraform_*_linux_amd64.zip -d /usr/bin && \
     rm -rf /tmp/* && \
