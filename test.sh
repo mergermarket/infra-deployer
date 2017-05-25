@@ -2,16 +2,17 @@
 
 set -e
 
-docker build -t infra-deployer.test -f Dockerfile.test .
+docker build -t cdflow-commands.test -f Dockerfile.test .
 
 docker run \
-    --name infra-deployer.test \
+    --name cdflow-commands.test \
     --rm \
     -i $(tty -s && echo -t) \
-    infra-deployer.test py.test \
+    -v $(pwd)/.hypothesis/:/infra/.hypothesis/ \
+    cdflow-commands.test py.test \
         --cov=. \
         --cov-report term-missing \
         "$@"
 
-docker run --rm infra-deployer.test flake8 --max-complexity=4
+docker run --rm cdflow-commands.test flake8 --max-complexity=4
 
