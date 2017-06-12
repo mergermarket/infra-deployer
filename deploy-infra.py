@@ -1,5 +1,5 @@
 """
-Thin wrapper over terragrunt, expecting exactly the same syntax as terragrunt/terraform itself.
+Thin wrapper over terraform, expecting exactly the same syntax as terraform itself.
 
 Extracts the values of the terraform vars <required_vars>, and uses them for it's own purposes
 
@@ -20,7 +20,7 @@ s3_bucket_prefix = "terraform-tfstate-"
 required_vars = ['env', 'component', 'aws_region', 'account_id']
 
 
-def generate_terragrunt_config(parsed_args):
+def generate_terraform_config(parsed_args):
     region = parsed_args['aws_region']
     environment = parsed_args['env']
     component_name = parsed_args['component']
@@ -29,31 +29,23 @@ def generate_terragrunt_config(parsed_args):
     s3_bucket_suffix = hashlib.md5(account_id.encode('utf-8')).hexdigest()[:6]
     s3_bucket_name = s3_bucket_prefix + s3_bucket_suffix
 
-    """Generates terragrunt config as per terragrunt documentation"""
+    """Generates terraform config as per documentation"""
     state_file_id = "{env}-{component}".format(env=environment, component=component_name)
 
-    grunt_config_template = """lock = {{
-  backend = "dynamodb"
-  config {{
-    state_file_id = "{state_file_id}"
-    aws_region = "{region}"
-    table_name = "terragrunt_locks"
-    max_lock_retries = 360
+    state_config_template = """
+terraform {{
+  backend "s3" {{
+    bucket = "{s3_bucket}"
+    key    = "{env}/{component}/terraform.tfstate"
+    region = "{region}"
+    dynamodb_table = "terraform_locks"
   }}
 }}
-remote_state = {{
-  backend = "s3"
-  config {{
-    encrypt = "true"
-    bucket = "{s3_bucket}"
-    key = "{env}/{component}/terraform.tfstate"
-    region = "{region}"
-  }}
-}}"""
+"""
 
-    with open('.terragrunt', 'w') as f:
-        f.write(grunt_config_template.format(
-            state_file_id=state_file_id,
+
+    with open('infra/state.tf', 'w') as f:
+        f.write(state_config_template.format(
             region=region,
             s3_bucket=s3_bucket_name,
             env=environment,
@@ -68,12 +60,12 @@ def assume_role(parsed_args):
 
     priv_role = unpriv_client.assume_role(
         RoleArn=admin_role_arn,
-        RoleSessionName='terragrunt'
+        RoleSessionName='terraform'
     )
     return priv_role
 
 
-def terragrunt(all_args, parsed_args, role_creds):
+def terraform(all_args, parsed_args, role_creds):
 
     priv_creds = role_creds['Credentials']
 
@@ -87,17 +79,17 @@ def terragrunt(all_args, parsed_args, role_creds):
     # Required, as we want this in a predictable place for external use
     os.symlink(tmp_secrets, '/tmp/secrets.json')
 
-    check_call(["terragrunt", "get", "infra"], env=env)
-    check_call(["terragrunt"] + all_args + ["infra"], env=env)
+    check_call(["terraform", "init"], env=env, cwd='infra')
+    check_call(["terraform"] + all_args, env=env, cwd='infra')
 
 
 def cleanup():
     try:
-        os.remove(".terragrunt")
+        os.remove("infra/state.tf")
     except:
         pass
     try:
-        shutil.rmtree(".terraform")
+        shutil.rmtree("infra/.terraform")
     except:
         pass
 
@@ -127,8 +119,8 @@ def main():
     cleanup()
     role_creds = assume_role(parsed_args)
 
-    generate_terragrunt_config(parsed_args)
-    terragrunt(all_args, parsed_args, role_creds)
+    generate_terraform_config(parsed_args)
+    terraform(all_args, parsed_args, role_creds)
     cleanup()
 
 
