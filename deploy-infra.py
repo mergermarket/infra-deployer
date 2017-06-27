@@ -17,11 +17,12 @@ import util
 
 
 s3_bucket_prefix = "terraform-tfstate-"
-required_vars = ['env', 'component', 'aws_region', 'account_id']
+required_vars = ['env', 'component', 'state_aws_region', 'aws_region', 'account_id']
+optional_vars = ['state_aws_region']
 
 
 def generate_terraform_config(parsed_args):
-    region = parsed_args['aws_region']
+    region = parsed_args.get('state_aws_region', parsed_args['aws_region'])
     environment = parsed_args['env']
     component_name = parsed_args['component']
     account_id = parsed_args['account_id']
@@ -45,12 +46,13 @@ terraform {{
 
 
     with open('infra/state.tf', 'w') as f:
-        f.write(state_config_template.format(
+        t=state_config_template.format(
             region=region,
             s3_bucket=s3_bucket_name,
             env=environment,
             component=component_name
-        ))
+        )
+        f.write(t)
 
 
 def assume_role(parsed_args):
@@ -97,6 +99,12 @@ def cleanup():
 def parse_args(args):
     found_vars = {}
     for var in required_vars:
+        regex = re.compile('^' + var + '=')
+        for arg in args:
+            if regex.search(arg):
+                short_arg = arg.split("=")
+                found_vars[var] = short_arg[1]
+    for var in optional_vars:
         regex = re.compile('^' + var + '=')
         for arg in args:
             if regex.search(arg):
