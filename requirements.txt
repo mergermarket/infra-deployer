@@ -1,6 +1,6 @@
 # TODO: pin dependency versions
 
-boto3==1.4.0
+boto3==1.7.65
 credstash==1.12.0
 docopt==0.6.2
 nose==1.3.7
