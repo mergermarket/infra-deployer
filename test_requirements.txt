@@ -3,4 +3,4 @@ pytest-cov==2.4.0
 mock==2.0.0
 flake8==3.2.1
 mccabe==0.5.3
-hypothesis==3.6.1
+hypothesis==3.67.1
