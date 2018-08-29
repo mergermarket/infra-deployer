@@ -1,6 +1,6 @@
 pytest==3.0.5
 pytest-cov==2.5.1
 mock==2.0.0
-flake8==3.2.1
+flake8==3.5.0
 mccabe==0.6.1
 hypothesis==3.6.1
