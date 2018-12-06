@@ -1,6 +1,6 @@
 # Used to create docker image for running the commands invoked by the stubs in ../scripts/.
 
-FROM centos:7.5.1804
+FROM centos:7.6.1810
 
 ENV TERRAFORM_VERSION=0.8.8
 ENV TERRAGRUNT_VERSION=v0.6.0
